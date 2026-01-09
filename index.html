@@ -22,6 +22,7 @@ body {
 }
 
 h1 {
+    font-size: 2em;
     animation: wobble 4s infinite;
 }
 
@@ -127,6 +128,18 @@ button:hover {
     75% { transform: rotate(1deg); }
     100% { transform: rotate(0deg); }
 }
+
+/* ===== АДАПТИВ ===== */
+
+@media (max-width: 600px) {
+    h1 { font-size: 1.5em; }
+    button { padding: 10px 14px; font-size: 0.9em; margin: 4px; }
+    .weed-pile { width: 100px; height: 90px; }
+    .weed-leaf { width: 45px; height: 45px; }
+    .joint { width: 30px; height: 6px; left: 60px; bottom: 30px; }
+    .smoke { width: 10px; height: 10px; left: 75px; bottom: 45px; }
+    .stat { font-size: 1em; }
+}
 </style>
 </head>
 
@@ -161,6 +174,10 @@ let highness = 0;
 let reality = 100;
 
 const logBox = document.getElementById("log");
+
+// ===== Определение устройства =====
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if(isMobile) document.body.classList.add("mobile");
 
 function log(msg) {
     const el = document.createElement("div");
