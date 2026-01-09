@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Симулятор Травы, Которая Курит Траву</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    background: radial-gradient(circle at center, #163516, #000);
+    color: #b5ffb5;
+    overflow: hidden;
+    transition: filter 1s, transform 1s;
+}
+
+#game {
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    animation: wobble 4s infinite;
+}
+
+/* ===== СПРАЙТ ТРАВЫ ===== */
+
+#weed {
+    display: flex;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+.weed-pile {
+    position: relative;
+    width: 140px;
+    height: 120px;
+    animation: breathe 3s infinite ease-in-out;
+}
+
+.weed-leaf {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #4caf50, #1b5e20);
+    border-radius: 50% 50% 40% 40%;
+    transform-origin: bottom center;
+}
+
+.leaf1 { left: 5px;  bottom: 10px; transform: rotate(-20deg); }
+.leaf2 { left: 40px; bottom: 5px;  transform: rotate(5deg); }
+.leaf3 { left: 75px; bottom: 15px; transform: rotate(25deg); }
+
+.joint {
+    position: absolute;
+    width: 40px;
+    height: 8px;
+    background: linear-gradient(to right, #caa472, #fff);
+    border-radius: 4px;
+    bottom: 40px;
+    left: 85px;
+    transform: rotate(-20deg);
+    opacity: 0.7;
+}
+
+.smoke {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: rgba(200,200,200,0.6);
+    border-radius: 50%;
+    left: 110px;
+    bottom: 60px;
+    animation: smoke 2s infinite ease-out;
+}
+
+/* ===== UI ===== */
+
+button {
+    padding: 12px 18px;
+    margin: 6px;
+    font-size: 1em;
+    background: #2f6f2f;
+    color: #eaffea;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+button:hover {
+    transform: scale(1.1) rotate(1deg);
+}
+
+.stat {
+    font-size: 1.1em;
+    margin: 5px;
+}
+
+#log {
+    margin-top: 15px;
+    height: 130px;
+    overflow-y: auto;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+/* ===== АНИМАЦИИ ===== */
+
+@keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+@keyframes smoke {
+    0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+    100% { transform: translateY(-40px) scale(2); opacity: 0; }
+}
+
+@keyframes wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(1deg); }
+    50% { transform: rotate(-1deg); }
+    75% { transform: rotate(1deg); }
+    100% { transform: rotate(0deg); }
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+    <h1>🌿 Симулятор Травы, Которая Курит Траву</h1>
+
+    <div id="weed">
+        <div class="weed-pile">
+            <div class="weed-leaf leaf1"></div>
+            <div class="weed-leaf leaf2"></div>
+            <div class="weed-leaf leaf3"></div>
+            <div class="joint"></div>
+            <div class="smoke"></div>
+        </div>
+    </div>
+
+    <div class="stat">Дофамин: <span id="dopamine">0</span></div>
+    <div class="stat">Уровень накуренности: <span id="highness">0</span></div>
+    <div class="stat">Целостность реальности: <span id="reality">100%</span></div>
+
+    <button id="smokeBtn">Курить траву</button>
+    <button id="upgradeBtn">Купить улучшение (плохая идея)</button>
+    <button id="thinkBtn">Подумать о чём-то глубоком</button>
+
+    <div id="log"></div>
+</div>
+
+<script>
+let dopamine = 0;
+let highness = 0;
+let reality = 100;
+
+const logBox = document.getElementById("log");
+
+function log(msg) {
+    const el = document.createElement("div");
+    el.innerText = msg;
+    logBox.prepend(el);
+}
+
+const thoughts = [
+    "Бро… а вдруг я сам — косяк?",
+    "Зачем мне больше травы, если я и есть трава?",
+    "Дым знает слишком много.",
+    "Цифры какие-то агрессивные.",
+    "Ты настоящий или просто кликаешь?",
+    "Раньше это казалось хорошей идеей."
+];
+
+function updateUI() {
+    document.getElementById("dopamine").innerText = Math.floor(dopamine);
+    document.getElementById("highness").innerText = highness;
+    document.getElementById("reality").innerText = Math.max(0, Math.floor(reality)) + "%";
+
+    document.body.style.filter =
+        `blur(${Math.min(highness * 0.25, 6)}px)
+         hue-rotate(${highness * 6}deg)
+         saturate(${1 + highness * 0.1})`;
+
+    document.body.style.transform =
+        `rotate(${Math.sin(highness / 4) * 0.5}deg)`;
+
+    const pile = document.querySelector(".weed-pile");
+    pile.style.transform =
+        `rotate(${Math.sin(highness / 3) * highness * 0.4}deg)
+         scale(${1 + highness * 0.015})`;
+}
+
+function smoke(auto=false) {
+    dopamine += Math.random() * (4 + highness);
+    highness++;
+    reality -= Math.random() * 2;
+
+    const joint = document.querySelector(".joint");
+    joint.style.opacity = "1";
+    setTimeout(() => joint.style.opacity = "0.6", 300);
+
+    log(auto
+        ? "Трава автоматически покурила. Ты просто смотрел."
+        : "Трава покурила траву. Опять.");
+
+    if (highness % 5 === 0) {
+        log("Трава говорит: «" +
+            thoughts[Math.floor(Math.random()*thoughts.length)] +
+            "»");
+    }
+
+    updateUI();
+}
+
+function upgrade() {
+    if (dopamine < 20) {
+        log("Недостаточно дофамина. Трава пожимает листьями.");
+        return;
+    }
+    dopamine -= 20;
+    highness += Math.floor(Math.random() * 3);
+    reality -= 10;
+    log("Открыто улучшение: Плохие Решения v" + highness);
+    updateUI();
+}
+
+function think() {
+    if (Math.random() < 0.5) {
+        dopamine += 2;
+        log("Ты глубоко подумал. Это не помогло.");
+    } else {
+        highness++;
+        reality -= 5;
+        log("Размышления только всё испортили.");
+    }
+    updateUI();
+}
+
+/* Кнопки иногда тебя игнорируют */
+document.getElementById("smokeBtn").onclick = () => {
+    if (Math.random() < highness * 0.05) {
+        log("Трава проигнорировала тебя.");
+        smoke(true);
+    } else {
+        smoke();
+    }
+};
+
+document.getElementById("upgradeBtn").onclick = upgrade;
+document.getElementById("thinkBtn").onclick = think;
+
+/* Автокурение (idle) */
+setInterval(() => {
+    if (Math.random() < 0.3 + highness * 0.02) {
+        smoke(true);
+    }
+}, 4000);
+
+/* Коллапс реальности */
+setInterval(() => {
+    if (reality <= 0) {
+        document.body.innerHTML =
+            "<h1 style='text-align:center;margin-top:40vh;'>Слишком накурено, чтобы закрыться.</h1>";
+    }
+}, 3000);
+
+log("Трава осознала себя. Ошибки были допущены.");
+updateUI();
+</script>
+</body>
+</html>
